@@ -48,15 +48,14 @@ export async function GET(request) {
         .find(".a-price-whole")
         .first()
         .text()
-        .replace(/[.,]/g, "")
         .trim();
       const priceFraction = $(element)
         .find(".a-price-fraction")
         .first()
         .text()
         .trim();
-      const price = priceWhole
-        ? `${priceWhole}.${priceFraction || "00"}`
+      let price = priceWhole
+        ? `₹${priceWhole}${priceFraction ? `.${priceFraction}` : ".00"}`
         : "N/A";
 
       const reviews = $(element)

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import * as cheerio from "cheerio";
-import puppeteerCore from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer";
+import * as cheerio from "cheerio";
 
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams;
@@ -20,46 +18,10 @@ export async function GET(request) {
 
   let browser;
   try {
-    let browserOptions = {};
-
-    let puppeteerInstance;
-
-    if (process.env.VERCEL) {
-      puppeteerInstance = puppeteerCore;
-
-      browserOptions = {
-        args: chromium.args,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-        defaultViewport: chromium.defaultViewport,
-        ignoreHTTPSErrors: true,
-      };
-    } else {
-      // Development environment (Local)
-      // const puppeteerModule = await import("puppeteer");
-      puppeteerInstance = puppeteer;
-
-      browserOptions = {
-        headless: true,
-        defaultViewport: null,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      };
-    }
-
-    browser = await puppeteerInstance.launch(browserOptions);
+    browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
-    // Block unnecessary resources to save memory and speed up scraping
-    await page.setRequestInterception(true);
-    page.on("request", (req) => {
-      if (["image", "stylesheet", "font"].includes(req.resourceType())) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
-
-    // Set User-Agent to mimic a real browser
+    // Set a user agent to prevent potential blocking
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -91,8 +53,8 @@ export async function GET(request) {
         .first()
         .text()
         .trim();
-      let price = priceWhole
-        ? `₹${priceWhole}${priceFraction ? `.${priceFraction}` : ".00"}`
+      const price = priceWhole
+        ? `₹${priceWhole}.${priceFraction || "00"}`
         : "N/A";
 
       const reviews = $(element)
@@ -123,24 +85,16 @@ export async function GET(request) {
       });
     }
 
-    return NextResponse.json(
-      { products, success: true, status: 200 },
-      { headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" } }
-    );
+    return NextResponse.json({ products, success: true, status: 200 });
   } catch (error) {
-    console.error("Error during scraping:", error);
     return NextResponse.json({
-      error: error.message || "Something went wrong",
+      error: "Something went wrong",
       status: 500,
       success: false,
     });
   } finally {
     if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error("Error closing browser:", closeError);
-      }
+      await browser.close();
     }
   }
 }

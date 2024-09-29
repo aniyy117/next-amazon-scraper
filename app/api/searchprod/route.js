@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams;
@@ -18,7 +20,22 @@ export async function GET(request) {
 
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: true });
+    if (process.env.VERCEL_ENV === "production") {
+      const executablePath = await chromium.executablePath();
+      browser = await puppeteerCore.launch({
+        executablePath,
+        args: chromium.args,
+        headless: chromium.headless,
+        defaultViewport: chromium.defaultViewport,
+      });
+    } else {
+      browser = await puppeteer.launch({
+        headless: "new",
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+    }
+
+    // browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
     // Set a user agent to prevent potential blocking

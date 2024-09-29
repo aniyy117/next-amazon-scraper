@@ -5,7 +5,6 @@ import * as cheerio from "cheerio";
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("query");
-  console.log(query);
 
   if (!query) {
     return NextResponse.json({

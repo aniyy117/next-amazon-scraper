@@ -162,7 +162,7 @@ export default function Home() {
 
       {!loading && !error && products.length === 0 && query.trim() && (
         <div className="text-center py-4 text-gray-500">
-          No results found for "{query}"
+          {`No results found for ${query}`}
         </div>
       )}
     </main>

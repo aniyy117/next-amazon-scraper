@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
-import puppeteer from "puppeteer";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
 
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams;
@@ -21,31 +21,45 @@ export async function GET(request) {
   let browser;
   try {
     let browserOptions = {};
+
     let puppeteerInstance;
 
-    if (process.env.AWS_REGION || process.env.VERCEL) {
-      // Running on Vercel (production environment)
+    if (process.env.VERCEL) {
       puppeteerInstance = puppeteerCore;
 
       browserOptions = {
         args: chromium.args,
         executablePath: await chromium.executablePath(),
         headless: chromium.headless,
+        defaultViewport: chromium.defaultViewport,
+        ignoreHTTPSErrors: true,
       };
     } else {
-      // Running locally (development environment)
+      // Development environment (Local)
+      // const puppeteerModule = await import("puppeteer");
       puppeteerInstance = puppeteer;
 
       browserOptions = {
-        headless: "new",
+        headless: true,
+        defaultViewport: null,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
       };
     }
 
     browser = await puppeteerInstance.launch(browserOptions);
-
     const page = await browser.newPage();
 
-    // Set a user agent to prevent potential blocking
+    // Block unnecessary resources to save memory and speed up scraping
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      if (["image", "stylesheet", "font"].includes(req.resourceType())) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    // Set User-Agent to mimic a real browser
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -109,16 +123,24 @@ export async function GET(request) {
       });
     }
 
-    return NextResponse.json({ products, success: true, status: 200 });
+    return NextResponse.json(
+      { products, success: true, status: 200 },
+      { headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate" } }
+    );
   } catch (error) {
+    console.error("Error during scraping:", error);
     return NextResponse.json({
-      error: "Something went wrong",
+      error: error.message || "Something went wrong",
       status: 500,
       success: false,
     });
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error("Error closing browser:", closeError);
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
+import puppeteer from "puppeteer";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 
@@ -20,22 +20,29 @@ export async function GET(request) {
 
   let browser;
   try {
-    if (process.env.VERCEL_ENV === "production") {
-      const executablePath = await chromium.executablePath();
-      browser = await puppeteerCore.launch({
-        executablePath,
+    let browserOptions = {};
+    let puppeteerInstance;
+
+    if (process.env.AWS_REGION || process.env.VERCEL) {
+      // Running on Vercel (production environment)
+      puppeteerInstance = puppeteerCore;
+
+      browserOptions = {
         args: chromium.args,
+        executablePath: await chromium.executablePath(),
         headless: chromium.headless,
-        defaultViewport: chromium.defaultViewport,
-      });
+      };
     } else {
-      browser = await puppeteer.launch({
+      // Running locally (development environment)
+      puppeteerInstance = puppeteer;
+
+      browserOptions = {
         headless: "new",
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
+      };
     }
 
-    // browser = await puppeteer.launch({ headless: true });
+    browser = await puppeteerInstance.launch(browserOptions);
+
     const page = await browser.newPage();
 
     // Set a user agent to prevent potential blocking

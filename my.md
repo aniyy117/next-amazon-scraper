@@ -1,9 +1,8 @@
 Hey there, fellow developers! 👋
 
-Ever wanted to create your own Amazon product search tool? Whether for personal projects, data analysis, or just to flex your web scraping skills, you're in the right place! In this guide, I'll walk you through building a sleek Amazon Product Search app using **Next.js 14**, **Puppeteer**, **Cheerio**, and **shadcn UI** for stylish components. Let’s get started!
+Have you ever thought about building your own Amazon product search tool? Whether it's for a personal project, data analysis, or just to showcase your web scraping prowess, you're in the right spot! In this guide, I'll walk you through creating a sleek Amazon Product Search app using **Next.js 14**, **Puppeteer**, **Cheerio**, and **shadcn UI** for those stylish components. Let’s dive in!
 
 ---
-
 
 ## Table of Contents
 
@@ -19,20 +18,19 @@ Ever wanted to create your own Amazon product search tool? Whether for personal 
 
 ---
 
-
 ## Setting Up Next.js 14
 
-First, let's set up our Next.js project.
+Let's kick things off by setting up our Next.js project.
 
 ### Step 1: Initialize Your Project
 
-Open your terminal and run:
+Open up your terminal and run:
 
 ```bash
 npx create-next-app@latest amazon-product-search
 ```
 
-During the installation, you'll be prompted with the following questions:
+During the setup, you'll be asked a few questions like:
 
 ```bash
 What is your project named? amazon-product-search
@@ -46,24 +44,24 @@ Would you like to customize the import alias (`@/*` by default)? No / Yes
 What import alias would you like configured? @/*
 ```
 
-After answering the prompts, `create-next-app` will create a folder named `amazon-product-search` and install all required dependencies.
+Once you've answered these prompts, `create-next-app` will set up a folder named `amazon-product-search` and install all the necessary dependencies.
 
 ### Step 2: Launch the Development Server
 
-Navigate to your project directory and start the server:
+Navigate into your project directory and start the server:
 
 ```bash
 cd amazon-product-search
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser to see the default Next.js welcome page.
+Head over to `http://localhost:3000` in your browser, and you should see the default Next.js welcome page.
 
 ---
 
 ## Installing Puppeteer, Cheerio, and shadcn UI
 
-Next, we'll install the necessary libraries for web scraping and UI components.
+Next up, we'll install the essential libraries for web scraping and UI components.
 
 ### Puppeteer
 
@@ -75,7 +73,7 @@ npm install puppeteer
 
 ### Cheerio
 
-Cheerio is a fast, flexible, and lean implementation of jQuery designed for server-side manipulation of HTML.
+Cheerio is a fast, flexible, and lean implementation of jQuery designed for server-side HTML manipulation.
 
 ```bash
 npm install cheerio
@@ -87,13 +85,13 @@ npm install cheerio
 
 #### Step 1: Initialize shadcn UI
 
-Run the following command to initialize shadcn UI in your project:
+Run the following command to set up shadcn UI in your project:
 
 ```bash
 npx shadcn@latest init
 ```
 
-You can use the `-d` flag for defaults (e.g., `new-york` for style, `zinc` for base color, and enabling CSS variables):
+You can use the `-d` flag for defaults (like `new-york` for style, `zinc` for base color, and enabling CSS variables):
 
 ```bash
 npx shadcn@latest init -d
@@ -111,21 +109,19 @@ Do you want to use CSS variables for colors? › yes
 
 #### Step 3: Add shadcn UI Components
 
-You have two options to add components using shadcn UI:
+There are two ways to add components using shadcn UI:
 
 1. **Add Components Individually**
 
    Use the `add` command followed by the component name:
 
    ```bash
-   npx shadcn@latest add button
-   npx shadcn@latest add input
-   npx shadcn@latest add card
+   npx shadcn@latest add button input card
    ```
 
 2. **Interactive Component Selection**
 
-   Alternatively, run the `add` command without specifying a component. This will present you with a list of available components to select and install interactively:
+   Alternatively, run the `add` command without specifying a component. This will present a list of available components to select and install interactively:
 
    ```bash
    npx shadcn@latest add
@@ -133,15 +129,15 @@ You have two options to add components using shadcn UI:
 
    Follow the prompts to choose the components you want to add.
 
-![shadcn components selection](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b1wu9n78vqdcfdvwqc34.png)
+   ![shadcn components selection](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b1wu9n78vqdcfdvwqc34.png)
 
-These commands will create the respective component files in your `components/ui` directory. You can then import and use them in your project.
+These commands will create the respective component files in your `components/ui` directory. You can then import and use them throughout your project.
 
 ---
 
 ## Creating the Home Page
 
-Let's build a user-friendly interface where users can search for Amazon products.
+Let's craft a user-friendly interface where users can search for Amazon products.
 
 ### Home Page Component (`app/page.jsx`)
 
@@ -326,26 +322,20 @@ export default function Home() {
 
 ### What's Happening Here
 
-- **State Management:** Using `useState` to handle loading, query input, fetched products, and errors.
+- **State Management:** We're using `useState` to handle loading states, the user's query input, fetched products, and any potential errors.
 - **Form Handling:** The `onSubmit` function sends a request to our backend API with the search query.
-- **Fetching Data:** Fetches data from `/api/searchprod` and updates the UI based on the response.
-- **Displaying Results:** Shows products in a responsive grid with images, titles, prices, stars, and reviews using shadcn UI components.
+- **Fetching Data:** It fetches data from `/api/searchprod` and updates the UI based on the response.
+- **Displaying Results:** Products are displayed in a responsive grid with images, titles, prices, stars, and reviews, all styled using shadcn UI components.
 
 ---
 
 ## Identify the Information to Retrieve on the Amazon Product Page
 
-We will use the [Amazon listing results](https://www.amazon.in/s?k=macbook+pro&ref=nb_sb_noss) for the “MacBook Pro” search term and retrieve the product title and price.
+We'll be using the [Amazon listing results](https://www.amazon.in/s?k=macbook+pro&ref=nb_sb_noss) for the “MacBook Pro” search term to retrieve details like the product title and price.
 
-Navigate to Amazon and search for the term. Then, inspect the page to see the DOM structure. Next, find the selector related to this information.
+1. **Navigate to Amazon and Perform a Search:** Head over to Amazon and search for "MacBook Pro." Inspect the page to understand the DOM structure and identify the selectors related to the information we need.
 
-The picture below shows the location of the product title and price in the DOM.
-
-![Amazon search](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lye0xopmr0brgjvxban8.png)
-
-
-From there, we can match each piece of information with the corresponding DOM selector. Here’s a table with the selectors we’ll be using:
-
+2. **Matching Information with DOM Selectors:** Here's a table outlining the selectors we'll use:
 
 | **Information**    | **DOM Selector**               | **Description**                                             |
 |--------------------|--------------------------------|-------------------------------------------------------------|
@@ -355,6 +345,8 @@ From there, we can match each piece of information with the corresponding DOM se
 | Reviews Count      | `.a-size-base.s-underline-text` | Retrieves the number of reviews for the product.             |
 | Star Rating        | `.a-icon-alt`                  | Retrieves the star rating of the product.                    |
 | Product Image      | `.s-image`                     | Extracts the product image URL from the search results.      |
+
+![Amazon search](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lye0xopmr0brgjvxban8.png)
 
 ---
 
@@ -475,34 +467,32 @@ export async function GET(request) {
 
 ### Breaking It Down
 
-1. **Imports:**
-
+**Imports:**
    - **NextResponse:** For sending JSON responses.
    - **Puppeteer:** Automates browser actions.
    - **Cheerio:** Parses and manipulates HTML.
 
-2. **Handling the GET Request:**
+**Handling the GET Request:**
 
    - **Extract Query Parameter:** Retrieves the `query` parameter from the URL.
    - **Validation:** Returns an error response if no query is provided.
 
-3. **Launching Puppeteer:**
+**Launching Puppeteer:**
 
    - **Headless Mode:** Runs the browser in headless mode for efficiency.
    - **User Agent:** Sets a realistic user agent string to mimic a real browser and avoid detection/blocking.
 
-4. **Navigating to Amazon and Performing the Search:**
+**Navigating to Amazon and Performing the Search:**
+  - **Navigate to Amazon:** Opens Amazon India's homepage and waits until the network is idle.
+  - **Perform Search:** Types the search query into Amazon's search box and submits the form.
 
-   - **Navigate to Amazon:** Opens Amazon India's homepage and waits until the network is idle.
-   - **Perform Search:** Types the search query into Amazon's search box and submits the form.
-
-5. **Scraping the Data:**
+**Scraping the Data:**
 
    - **Get Page Content:** Retrieves the HTML content of the search results page.
    - **Load into Cheerio:** Parses the HTML for data extraction.
    - **Extract Product Details:** Gathers information such as title, price, reviews, stars, and image for each product.
 
-6. **Sending the Response:**
+**Sending the Response:**
    - **Success:** If products are found, sends them back as a JSON response.
    - **No Products Found:** Returns a 404 error if no products match the search query.
    - **Error Handling:** Catches any unexpected errors and sends a 500 error response.
@@ -564,16 +554,16 @@ Ensure your `package.json` includes the necessary dependencies:
 
 ### Best Practices
 
-- **Respectful Scraping:** Always check the target site's `robots.txt` and terms of service.
+- **Respectful Scraping:** Always check the target site's `robots.txt` and terms of service to ensure you're allowed to scrape their data.
 - **Error Handling:** Implement robust error handling to manage unexpected issues gracefully.
-- **Performance Optimization:** Puppeteer can be resource-intensive. Use caching or limit scraping frequency to optimize performance.
+- **Performance Optimization:** Puppeteer can be resource-intensive. Consider using caching or limiting scraping frequency to optimize performance.
 - **Security:** Validate and sanitize all inputs to protect against potential vulnerabilities.
 
 ---
 
 ## Conclusion
 
-And there you have it—a fully functional Amazon Product Search app built with **Next.js 14**, **Puppeteer**, **Cheerio**, and **shadcn UI**! 🎉 Whether you're looking to expand your web scraping skills or build data-driven applications, these tools offer incredible flexibility and power.
+And there you have it—a fully functional Amazon Product Search app built with **Next.js 14**, **Puppeteer**, **Cheerio**, and **shadcn UI**! 🎉 Whether you're aiming to enhance your web scraping skills or build data-driven applications, these tools provide incredible flexibility and power.
 
 ### What's Next?
 
@@ -583,7 +573,7 @@ And there you have it—a fully functional Amazon Product Search app built with 
 
 ---
 
-Happy coding, and I hope this guide helps you in your development journey! 🚀
+Happy coding, and I hope this guide assists you on your development journey! 🚀
 
 ## Resources
 
